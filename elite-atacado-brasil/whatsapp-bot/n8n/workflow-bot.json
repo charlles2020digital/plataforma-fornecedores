@@ -1,0 +1,282 @@
+{
+  "name": "Elite - 2. Bot WhatsApp Principal",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-elite",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-01-webhook",
+      "name": "📨 Receber Mensagem WhatsApp",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "whatsapp-elite-bot"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: 'ok' }) }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "node-02-respond-ok",
+      "name": "✅ Responder 200 OK para Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 160]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrair dados da mensagem do WhatsApp\nconst body = $input.first().json.body;\n\ntry {\n  const entry = body?.entry?.[0];\n  const change = entry?.changes?.[0]?.value;\n  const messages = change?.messages;\n\n  // Ignorar status updates (delivered, read, etc)\n  if (!messages || messages.length === 0) {\n    return [{ json: { ignorar: true } }];\n  }\n\n  const msg = messages[0];\n\n  // Ignorar mensagens que não são texto\n  if (msg.type !== 'text') {\n    return [{ json: { ignorar: true, motivo: 'tipo não suportado: ' + msg.type } }];\n  }\n\n  const contact = change?.contacts?.[0];\n\n  return [{\n    json: {\n      ignorar: false,\n      phone: msg.from,\n      name: contact?.profile?.name || 'Cliente',\n      message: msg.text.body,\n      message_id: msg.id,\n      phone_number_id: change?.metadata?.phone_number_id,\n      timestamp: msg.timestamp\n    }\n  }];\n} catch (e) {\n  return [{ json: { ignorar: true, erro: e.message } }];\n}"
+      },
+      "id": "node-03-extrair",
+      "name": "📋 Extrair Dados da Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 420]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "cond-ignorar",
+              "leftValue": "={{ $json.ignorar }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-04-if-ignorar",
+      "name": "🔀 Deve Ignorar?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 420]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_conversas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "numero", "value": "=eq.{{ $json.phone }}" },
+            { "name": "order", "value": "created_at.desc" },
+            { "name": "limit", "value": "10" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-05-historico",
+      "name": "🗂️ Buscar Histórico (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Montar o array de mensagens para a API do Groq\nconst dadosMensagem = $('📋 Extrair Dados da Mensagem').first().json;\nconst historico = $('🗂️ Buscar Histórico (Supabase)').all().map(i => i.json);\n\n// System prompt com dados do produto\nconst systemPrompt = `Você é a Ana, assistente virtual da Elite Atacado Brasil.\n\nSOBRE O PRODUTO:\nA Elite Atacado Brasil é uma plataforma digital com 165 fornecedores atacadistas verificados dos maiores polos do Brasil: Brás (SP), Rua 44 (Goiânia), Caruaru (PE), Nova Serrana (MG) e 25 de Março (SP). Além do diretório, oferece treinamentos, calculadora de lucro, checklist de excursão e prompts de IA.\n\nPREÇO E ACESSO:\n- Valor: R$ 97,37 (pagamento único, sem mensalidade)\n- Acesso vitalício com atualizações\n- Link de compra: ${$env.HOTMART_LINK}\n- Acesso liberado em até 5 minutos após compra\n\nREGRAS:\n1. Responda sempre em português brasileiro informal e simpático\n2. Seja concisa — máximo 3 parágrafos\n3. Nunca invente informações\n4. Sempre inclua o link quando perguntarem sobre preço\n5. Use no máximo 2 emojis por mensagem\n6. Se não souber responder algo específico, diga: \"Essa dúvida nossa equipe resolve! Me conta mais detalhes.\"`;\n\nconst messages = [{ role: 'system', content: systemPrompt }];\n\n// Adicionar histórico (reverso para ordem cronológica)\nconst historicoOrdenado = [...historico].reverse().slice(-8);\nfor (const msg of historicoOrdenado) {\n  messages.push({\n    role: msg.de_quem === 'cliente' ? 'user' : 'assistant',\n    content: msg.mensagem\n  });\n}\n\n// Adicionar mensagem atual\nmessages.push({ role: 'user', content: dadosMensagem.message });\n\nreturn [{\n  json: {\n    messages,\n    phone: dadosMensagem.phone,\n    name: dadosMensagem.name,\n    phone_number_id: dadosMensagem.phone_number_id,\n    mensagem_cliente: dadosMensagem.message\n  }\n}];"
+      },
+      "id": "node-06-prompt",
+      "name": "🧠 Montar Prompt com Histórico",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.GROQ_API_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'llama-3.3-70b-versatile', messages: $json.messages, temperature: 0.7, max_tokens: 500 }) }}",
+        "options": {}
+      },
+      "id": "node-07-groq",
+      "name": "🤖 Gerar Resposta (Groq IA)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const groqData = $input.first().json;\nconst promptData = $('🧠 Montar Prompt com Histórico').first().json;\n\nconst resposta = groqData.choices?.[0]?.message?.content || 'Olá! Tive um problema técnico. Pode repetir sua mensagem?';\n\nreturn [{\n  json: {\n    resposta,\n    phone: promptData.phone,\n    name: promptData.name,\n    phone_number_id: promptData.phone_number_id,\n    mensagem_cliente: promptData.mensagem_cliente\n  }\n}];"
+      },
+      "id": "node-08-extrair-resposta",
+      "name": "📝 Extrair Resposta da IA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.META_ACCESS_TOKEN }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.phone, type: 'text', text: { body: $json.resposta } }) }}",
+        "options": {}
+      },
+      "id": "node-09-enviar-wpp",
+      "name": "📤 Enviar Resposta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_conversas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ numero: $('📝 Extrair Resposta da IA').first().json.phone, nome: $('📝 Extrair Resposta da IA').first().json.name, mensagem: $('📝 Extrair Resposta da IA').first().json.mensagem_cliente, de_quem: 'cliente' }) }}",
+        "options": {}
+      },
+      "id": "node-10-salvar-cliente",
+      "name": "💾 Salvar Mensagem Cliente (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_conversas",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ numero: $('📝 Extrair Resposta da IA').first().json.phone, nome: $('📝 Extrair Resposta da IA').first().json.name, mensagem: $('📝 Extrair Resposta da IA').first().json.resposta, de_quem: 'bot' }) }}",
+        "options": {}
+      },
+      "id": "node-11-salvar-bot",
+      "name": "💾 Salvar Resposta Bot (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 660]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "Prefer", "value": "resolution=merge-duplicates,return=minimal" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ numero: $('📝 Extrair Resposta da IA').first().json.phone, nome: $('📝 Extrair Resposta da IA').first().json.name, ultima_mensagem: $('📝 Extrair Resposta da IA').first().json.mensagem_cliente, ultima_interacao: new Date().toISOString(), followup_enviado: false }) }}",
+        "options": {}
+      },
+      "id": "node-12-upsert-lead",
+      "name": "👤 Registrar/Atualizar Lead (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [2000, 480]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "📨 Receber Mensagem WhatsApp": {
+      "main": [
+        [
+          { "node": "✅ Responder 200 OK para Meta", "type": "main", "index": 0 },
+          { "node": "📋 Extrair Dados da Mensagem", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "📋 Extrair Dados da Mensagem": {
+      "main": [
+        [{ "node": "🔀 Deve Ignorar?", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔀 Deve Ignorar?": {
+      "main": [
+        [],
+        [{ "node": "🗂️ Buscar Histórico (Supabase)", "type": "main", "index": 0 }]
+      ]
+    },
+    "🗂️ Buscar Histórico (Supabase)": {
+      "main": [
+        [{ "node": "🧠 Montar Prompt com Histórico", "type": "main", "index": 0 }]
+      ]
+    },
+    "🧠 Montar Prompt com Histórico": {
+      "main": [
+        [{ "node": "🤖 Gerar Resposta (Groq IA)", "type": "main", "index": 0 }]
+      ]
+    },
+    "🤖 Gerar Resposta (Groq IA)": {
+      "main": [
+        [{ "node": "📝 Extrair Resposta da IA", "type": "main", "index": 0 }]
+      ]
+    },
+    "📝 Extrair Resposta da IA": {
+      "main": [
+        [
+          { "node": "📤 Enviar Resposta WhatsApp", "type": "main", "index": 0 },
+          { "node": "💾 Salvar Mensagem Cliente (Supabase)", "type": "main", "index": 0 },
+          { "node": "💾 Salvar Resposta Bot (Supabase)", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "💾 Salvar Mensagem Cliente (Supabase)": {
+      "main": [
+        [{ "node": "👤 Registrar/Atualizar Lead (Supabase)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "elite-bot-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "id": "elite-workflow-bot",
+  "tags": [{ "id": "elite-bot", "name": "Elite WhatsApp Bot" }]
+}

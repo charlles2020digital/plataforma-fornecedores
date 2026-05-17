@@ -1,0 +1,178 @@
+{
+  "name": "Elite - 3. Follow-up de Leads (Recuperação)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "hours", "hoursInterval": 3 }]
+        }
+      },
+      "id": "node-cron",
+      "name": "⏰ Executar a cada 3 horas",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "followup_enviado", "value": "eq.false" },
+            { "name": "status", "value": "in.(novo,interessado)" },
+            { "name": "ultima_interacao", "value": "=lt.{{ new Date(Date.now() - 2*60*60*1000).toISOString() }}" },
+            { "name": "limit", "value": "20" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-buscar-leads",
+      "name": "🔍 Buscar Leads Sem Resposta (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "cond-tem-leads",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": { "type": "number", "operation": "gt" }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "node-if-leads",
+      "name": "🔀 Tem leads para follow-up?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "=",
+        "options": {}
+      },
+      "id": "node-split",
+      "name": "🔁 Processar cada lead",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gerar mensagem de follow-up personalizada\nconst lead = $input.first().json;\nconst nome = lead.nome ? lead.nome.split(' ')[0] : 'Olá';\nconst ultimaMensagem = lead.ultima_mensagem || '';\n\n// Mensagens de follow-up rotativas baseadas no nome\nconst mensagens = [\n  `${nome}, ainda está pensando? 😊 A Elite Atacado Brasil tem 165 fornecedores verificados — Brás, Rua 44, Caruaru e mais. Por R$ 97,37 você acessa tudo de uma vez: ${$env.HOTMART_LINK}`,\n  `Oi ${nome}! Só passando para lembrar que o acesso à plataforma é por tempo limitado nesse valor 🎯 Se tiver alguma dúvida antes de comprar, estou aqui!`,\n  `${nome}, muitas revendedoras já estão comprando direto no atacado com os fornecedores da Elite 🛍️ Posso te ajudar com alguma dúvida para você dar esse passo?`\n];\n\n// Escolher mensagem baseada no timestamp (rotativa)\nconst idx = Math.floor(Date.now() / 1000) % mensagens.length;\n\nreturn [{\n  json: {\n    phone: lead.numero,\n    mensagem: mensagens[idx]\n  }\n}];"
+      },
+      "id": "node-gerar-followup",
+      "name": "💬 Gerar Mensagem de Follow-up",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $env.META_PHONE_NUMBER_ID }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "Authorization", "value": "=Bearer {{ $env.META_ACCESS_TOKEN }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $json.phone, type: 'text', text: { body: $json.mensagem } }) }}",
+        "options": {}
+      },
+      "id": "node-enviar-followup",
+      "name": "📤 Enviar Follow-up WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.SUPABASE_URL }}/rest/v1/wpp_leads",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "apikey", "value": "={{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Authorization", "value": "=Bearer {{ $env.SUPABASE_SERVICE_KEY }}" },
+            { "name": "Content-Type", "value": "application/json" }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            { "name": "numero", "value": "=eq.{{ $('💬 Gerar Mensagem de Follow-up').first().json.phone }}" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ JSON.stringify({ followup_enviado: true, status: 'interessado' }) }}",
+        "options": {}
+      },
+      "id": "node-marcar-followup",
+      "name": "✅ Marcar Follow-up Enviado (Supabase)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1560, 200]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "⏰ Executar a cada 3 horas": {
+      "main": [
+        [{ "node": "🔍 Buscar Leads Sem Resposta (Supabase)", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔍 Buscar Leads Sem Resposta (Supabase)": {
+      "main": [
+        [{ "node": "🔀 Tem leads para follow-up?", "type": "main", "index": 0 }]
+      ]
+    },
+    "🔀 Tem leads para follow-up?": {
+      "main": [
+        [{ "node": "🔁 Processar cada lead", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "🔁 Processar cada lead": {
+      "main": [
+        [{ "node": "💬 Gerar Mensagem de Follow-up", "type": "main", "index": 0 }]
+      ]
+    },
+    "💬 Gerar Mensagem de Follow-up": {
+      "main": [
+        [{ "node": "📤 Enviar Follow-up WhatsApp", "type": "main", "index": 0 }]
+      ]
+    },
+    "📤 Enviar Follow-up WhatsApp": {
+      "main": [
+        [{ "node": "✅ Marcar Follow-up Enviado (Supabase)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "elite-followup-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "id": "elite-workflow-followup",
+  "tags": [{ "id": "elite-bot", "name": "Elite WhatsApp Bot" }]
+}

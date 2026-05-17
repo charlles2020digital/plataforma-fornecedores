@@ -1,0 +1,54 @@
+version: '3.8'
+
+# ═══════════════════════════════════════════════════════════
+# ELITE Atacado Brasil — N8N no Oracle Cloud (Always Free)
+#
+# Como usar:
+#   1. Copie este arquivo para a VM do Oracle Cloud
+#   2. Copie o arquivo .env (renomeado de .env.example)
+#   3. Execute: docker compose up -d
+#   4. Acesse: http://SEU-IP-ORACLE:5678
+# ═══════════════════════════════════════════════════════════
+
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: elite-n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      # URL pública do N8N (substitua pelo IP ou domínio da sua VM)
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://${N8N_HOST}:5678/
+      - N8N_EDITOR_BASE_URL=https://${N8N_HOST}:5678/
+
+      # Segurança — crie um usuário e senha fortes
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASSWORD}
+
+      # Banco de dados do N8N (usa SQLite por padrão — OK para começar)
+      - DB_TYPE=sqlite
+
+      # Fuso horário Brasil
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+
+      # Variáveis de ambiente disponíveis nos workflows
+      - META_ACCESS_TOKEN=${META_ACCESS_TOKEN}
+      - META_PHONE_NUMBER_ID=${META_PHONE_NUMBER_ID}
+      - META_VERIFY_TOKEN=${META_VERIFY_TOKEN}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - HOTMART_LINK=${HOTMART_LINK}
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/home/node/.n8n/workflows
+
+volumes:
+  n8n_data:
+    driver: local

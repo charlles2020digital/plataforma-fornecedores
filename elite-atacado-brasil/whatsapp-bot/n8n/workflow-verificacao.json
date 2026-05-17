@@ -1,0 +1,62 @@
+{
+  "name": "Elite - 1. Verificação Webhook Meta",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "whatsapp-elite",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-get",
+      "name": "Receber Verificação Meta (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "whatsapp-elite-verify"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Meta envia hub.challenge quando registra o webhook\n// Retornamos o challenge para confirmar\nconst query = $input.first().json.query;\nconst verifyToken = $env.META_VERIFY_TOKEN;\n\nif (query['hub.mode'] === 'subscribe' && query['hub.verify_token'] === verifyToken) {\n  return [{ json: { challenge: query['hub.challenge'] } }];\n}\n\nreturn [{ json: { error: 'Token inválido' } }];"
+      },
+      "id": "node-code-verify",
+      "name": "Validar Token e Retornar Challenge",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.challenge }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "node-respond-verify",
+      "name": "Responder com Challenge",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 300]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receber Verificação Meta (GET)": {
+      "main": [
+        [{ "node": "Validar Token e Retornar Challenge", "type": "main", "index": 0 }]
+      ]
+    },
+    "Validar Token e Retornar Challenge": {
+      "main": [
+        [{ "node": "Responder com Challenge", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "active": true,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "elite-verify-v1",
+  "meta": { "templateCredsSetupCompleted": true },
+  "id": "elite-workflow-verificacao",
+  "tags": [{ "id": "elite-bot", "name": "Elite WhatsApp Bot" }]
+}
