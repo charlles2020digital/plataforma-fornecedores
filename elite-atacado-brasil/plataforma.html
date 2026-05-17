@@ -814,8 +814,7 @@ function LandingPage({onGoLogin}){
           <div className="grid grid-cols-1 md:grid-cols-6 gap-3 sm:gap-4">
             {/* Card grande - Diretório */}
             <div className="md:col-span-4 bg-ink-900 border border-ink-600 rounded-lg overflow-hidden hover:border-gold-500/40 transition-all group relative" style={{minHeight:'340px'}}>
-              <div className="absolute inset-0 opacity-30 group-hover:opacity-50 transition-opacity"
-                style={{background:'linear-gradient(135deg,#2d1b4e 0%,#4c1d95 50%,#1e1035 100%)'}}/>
+              <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80" alt="Diretório de fornecedores" className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:opacity-50 transition-opacity"/>
               <div className="absolute inset-0 bg-gradient-to-tr from-ink-950 via-ink-950/60 to-transparent"/>
               <div className="relative z-10 p-8 h-full flex flex-col">
                 <div className="flex items-start justify-between mb-5">
@@ -841,7 +840,7 @@ function LandingPage({onGoLogin}){
             {/* Card médio - Treinamentos */}
             <div className="md:col-span-2 bg-ink-900 border border-ink-600 rounded-lg overflow-hidden hover:border-gold-500/40 transition-all group" style={{minHeight:'340px'}}>
               <div className="aspect-[4/3] relative overflow-hidden">
-                <div className="w-full h-full" style={{background:'linear-gradient(160deg,#0c1a35 0%,#1e3a5f 40%,#2563eb 70%,#0a1020 100%)'}}/>
+                <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?w=800&q=80" alt="Treinamentos de negócios" className="w-full h-full object-cover"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/50 to-transparent"/>
                 <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
                   <div className="w-11 h-11 bg-ink-950/80 backdrop-blur-md border border-gold-500/30 rounded-md flex items-center justify-center">
@@ -859,7 +858,7 @@ function LandingPage({onGoLogin}){
             {/* Card médio - Ferramentas */}
             <div className="md:col-span-2 bg-ink-900 border border-ink-600 rounded-lg overflow-hidden hover:border-gold-500/40 transition-all group" style={{minHeight:'340px'}}>
               <div className="aspect-[4/3] relative overflow-hidden">
-                <div className="w-full h-full" style={{background:'linear-gradient(160deg,#0a1a0a 0%,#14532d 40%,#16a34a 70%,#052e16 100%)'}}/>
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=800&q=80" alt="Ferramentas de negócio" className="w-full h-full object-cover"/>
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/50 to-transparent"/>
                 <div className="absolute top-4 left-4 right-4 flex items-start justify-between">
                   <div className="w-11 h-11 bg-ink-950/80 backdrop-blur-md border border-gold-500/30 rounded-md flex items-center justify-center">
@@ -876,7 +875,8 @@ function LandingPage({onGoLogin}){
 
             {/* Card largo - Comunidade */}
             <div className="md:col-span-4 bg-ink-900 border border-ink-600 rounded-lg overflow-hidden hover:border-gold-500/40 transition-all group relative" style={{minHeight:'200px'}}>
-              <div className="absolute inset-0" style={{background:'linear-gradient(135deg,#1a0a2e 0%,#312e81 50%,#1e1b4b 100%)'}}>
+              <div className="absolute inset-0">
+                <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200&q=80" alt="Comunidade de revendedores" className="w-full h-full object-cover opacity-40"/>
                 <div className="absolute inset-0 bg-gradient-to-r from-ink-900 via-ink-900/80 to-transparent z-10"/>
               </div>
               <div className="relative z-10 p-8 h-full flex items-center">
@@ -907,17 +907,24 @@ function LandingPage({onGoLogin}){
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {[
               {n:'Brás', c:'São Paulo · SP', q:'30+ lojas', icon:'bag',
-               bg:'linear-gradient(145deg,#2d1b4e,#4c1d95,#1e1035)', ac:'#c084fc'},
+               bg:'linear-gradient(145deg,#2d1b4e,#4c1d95,#1e1035)', ac:'#c084fc',
+               img:'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?w=600&q=80'},
               {n:'Rua 44', c:'Goiânia · GO', q:'15+ fábricas', icon:'users',
-               bg:'linear-gradient(145deg,#0c1a35,#1e3a5f,#0a1020)', ac:'#60a5fa'},
+               bg:'linear-gradient(145deg,#0c1a35,#1e3a5f,#0a1020)', ac:'#60a5fa',
+               img:'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80'},
               {n:'Moda Center', c:'Santa Cruz · PE', q:'10+ marcas', icon:'bag',
-               bg:'linear-gradient(145deg,#3b1515,#7f1d1d,#1a0a0a)', ac:'#f87171'},
+               bg:'linear-gradient(145deg,#3b1515,#7f1d1d,#1a0a0a)', ac:'#f87171',
+               img:'https://images.unsplash.com/photo-1445205170230-053b83016050?w=600&q=80'},
               {n:'Nova Serrana', c:'Minas Gerais', q:'15 calçados', icon:'map',
-               bg:'linear-gradient(145deg,#1a1200,#78350f,#0f0800)', ac:'#fb923c'},
+               bg:'linear-gradient(145deg,#1a1200,#78350f,#0f0800)', ac:'#fb923c',
+               img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'},
               {n:'25 de Março', c:'São Paulo · SP', q:'15 perfumes', icon:'drop',
-               bg:'linear-gradient(145deg,#2a0a2e,#5b21b6,#1a0520)', ac:'#e879f9'},
+               bg:'linear-gradient(145deg,#2a0a2e,#5b21b6,#1a0520)', ac:'#e879f9',
+               img:'https://images.unsplash.com/photo-1541643600914-78b084683702?w=600&q=80'},
             ].map((p,i)=>(
-              <div key={i} className="polo-card aspect-[3/4]" style={{background:p.bg}}>
+              <div key={i} className="polo-card aspect-[3/4]">
+                <img src={p.img} alt={p.n} className="absolute inset-0 w-full h-full object-cover"/>
+                <div className="absolute inset-0 opacity-30" style={{background:p.bg}}/>
                 {/* Padrão de pontos sutil */}
                 <div className="absolute inset-0 opacity-10"
                   style={{backgroundImage:'radial-gradient(circle,rgba(255,255,255,0.6) 1px,transparent 1px)',backgroundSize:'18px 18px'}}/>
@@ -948,12 +955,17 @@ function LandingPage({onGoLogin}){
           </div>
           <div className="grid md:grid-cols-2 gap-5">
             {[
-              {t:'Revendedora autônoma', bg:'linear-gradient(135deg,#3b0764 0%,#7c3aed 45%,#be185d 80%,#1e1040 100%)', list:['Começa com pedido pequeno (a partir de 6 peças)','Compra direto no WhatsApp da fábrica','Aceita CPF na maioria dos fornecedores','Vende pelo Instagram sem gastar com anúncio']},
-              {t:'Lojista com CNPJ', bg:'linear-gradient(135deg,#0c1a35 0%,#1e3a5f 45%,#0369a1 80%,#0a0f1e 100%)', list:['Acesso a programas de revenda (Aramis, Sawary, Pit Bull)','Private label com fábricas verificadas','Margens melhores via pedido recorrente','Logística profissional com transportadoras']}
+              {t:'Revendedora autônoma', bg:'linear-gradient(135deg,#3b0764 0%,#7c3aed 45%,#be185d 80%,#1e1040 100%)',
+               img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80',
+               list:['Começa com pedido pequeno (a partir de 6 peças)','Compra direto no WhatsApp da fábrica','Aceita CPF na maioria dos fornecedores','Vende pelo Instagram sem gastar com anúncio']},
+              {t:'Lojista com CNPJ', bg:'linear-gradient(135deg,#0c1a35 0%,#1e3a5f 45%,#0369a1 80%,#0a0f1e 100%)',
+               img:'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80',
+               list:['Acesso a programas de revenda (Aramis, Sawary, Pit Bull)','Private label com fábricas verificadas','Margens melhores via pedido recorrente','Logística profissional com transportadoras']}
             ].map((p,i)=>(
               <div key={i} className="bg-ink-900 border border-ink-600 rounded-lg overflow-hidden hover:border-gold-500/40 transition-all">
                 <div className="aspect-[16/9] relative overflow-hidden">
-                  <div className="absolute inset-0" style={{background:p.bg}}/>
+                  <img src={p.img} alt={p.t} className="absolute inset-0 w-full h-full object-cover"/>
+                  <div className="absolute inset-0 opacity-40" style={{background:p.bg}}/>
                   <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(ellipse at 25% 60%,rgba(212,175,55,0.12),transparent 55%)'}}/>
                   <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/30 to-transparent"/>
                   <div className="absolute bottom-0 left-0 p-7">
@@ -1745,8 +1757,8 @@ function Dashboard({role,onLogout}){
     <div className="min-h-screen bg-ink-950 flex flex-col md:flex-row" style={{paddingBottom:'80px'}}>
 
       {/* Sidebar desktop */}
-      <div className="hidden md:flex flex-col p-4 h-screen sticky top-0 z-50 shrink-0">
-        <aside className="w-60 bg-ink-900 border border-ink-600 rounded-lg flex flex-col h-full overflow-hidden">
+      <div className="hidden md:flex flex-col p-3 lg:p-4 h-screen sticky top-0 z-50 shrink-0">
+        <aside className="w-52 lg:w-60 bg-ink-900 border border-ink-600 rounded-lg flex flex-col h-full overflow-hidden">
 
           {/* Logo */}
           <div className="p-6 pb-7 border-b border-ink-600">
@@ -2140,10 +2152,10 @@ function Dashboard({role,onLogout}){
               </tbody>
             </table>
           </div>
-          <div className="p-4 grid gap-2" style={{gridTemplateColumns:`repeat(${compareList.length},1fr)`}}>
+          <div className="p-4 flex flex-wrap gap-2">
             {compareList.map(s=>(
               <button key={s.id} onClick={()=>{setSelSupplier(null);setTimeout(()=>setSelSupplier(s),50);}}
-                className="btn-ghost py-2.5 rounded-md text-xs font-medium text-center tracked-tight uppercase">
+                className="btn-ghost flex-1 min-w-[120px] py-2.5 rounded-md text-xs font-medium text-center tracked-tight uppercase">
                 Ver {s.name.split(' ')[0]}
               </button>
             ))}
@@ -2159,7 +2171,7 @@ function Dashboard({role,onLogout}){
               className="absolute top-4 right-4 p-2 bg-ink-950/70 hover:bg-ink-950 text-ink-100 rounded-md z-20 transition-colors backdrop-blur-sm">
               <I p={ic.x} s={16}/>
             </button>
-            <div className="h-52 relative" style={{background:catBg(selSupplier.category)}}>
+            <div className="h-40 sm:h-52 relative" style={{background:catBg(selSupplier.category)}}>
               <img src={selSupplier.image} className="w-full h-full object-cover opacity-90" alt=""
                 onError={e=>{e.target.style.display='none';}} loading="lazy"/>
               <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/30 to-transparent"/>
@@ -2168,8 +2180,8 @@ function Dashboard({role,onLogout}){
                 <h2 className="text-2xl font-medium text-ink-50 tracking-tight">{selSupplier.name}</h2>
               </div>
             </div>
-            <div className="p-7">
-              <div className="grid sm:grid-cols-2 gap-6 mb-7">
+            <div className="p-4 sm:p-7">
+              <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 mb-7">
                 <div className="space-y-3">
                   <h4 className="text-[10px] font-medium text-ink-400 tracked uppercase">Informações</h4>
                   {[
