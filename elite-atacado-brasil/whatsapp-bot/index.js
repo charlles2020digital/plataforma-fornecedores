@@ -2,13 +2,20 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { getAIResponse } = require('./ai.js');
 
-// Configura o WhatsApp com salvamento de sessão local e usa o Chrome do usuário
+// Configura o WhatsApp com salvamento de sessão local e usa o Chrome correto dependendo do sistema
+const puppeteerOptions = {
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+};
+
+if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    puppeteerOptions.executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+} else if (process.platform === 'win32') {
+    puppeteerOptions.executablePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+}
+
 const client = new Client({
     authStrategy: new LocalAuth(),
-    puppeteer: {
-        executablePath: 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    }
+    puppeteer: puppeteerOptions
 });
 
 // Mantém um breve histórico de conversa na memória (simplificado)

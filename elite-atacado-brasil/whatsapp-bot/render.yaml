@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: whatsapp-bot
+    env: docker
+    plan: free
+    dockerfilePath: elite-atacado-brasil/whatsapp-bot/Dockerfile
+    envVars:
+      - key: GOOGLE_GEMINI_API_KEY
+        sync: false
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
+    healthCheckPath: /health
+    region: oregon
+    # Persistent storage for WhatsApp session files
+    disk:
+      mountPath: /app/.wwebjs_auth
+      sizeGB: 1
