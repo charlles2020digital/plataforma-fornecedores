@@ -18,8 +18,8 @@ WORKDIR /app
 # Copy only package files first for caching
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production
+# Install dependencies
+RUN npm install --omit=dev
 
 # Copy the rest of the source code
 COPY . .
