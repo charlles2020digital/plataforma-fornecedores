@@ -1,0 +1,9 @@
+# Dependências do Node
+node_modules/
+
+# Arquivo com a chave secreta da API - NUNCA subir isso para o GitHub!
+.env
+
+# Pasta de sessão do WhatsApp (gerada automaticamente)
+.wwebjs_auth/
+.wwebjs_cache/
