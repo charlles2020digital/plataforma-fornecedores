@@ -26,10 +26,20 @@ client.on('qr', (qr) => {
     console.log('📱 ESCANEIE O QR CODE ABAIXO NO SEU WHATSAPP 📱');
     console.log('==================================================');
     qrcode.generate(qr, { small: true });
+    
+    // Compartilha o QR Code com o servidor Express (/qr)
+    if (global.setLatestQr) {
+        global.setLatestQr(qr);
+    }
 });
 
 client.on('ready', () => {
     console.log('✅ Bot da ELITE Atacado Brasil está ONLINE e pronto para vender!');
+    
+    // Limpa o QR Code no servidor Express quando logado
+    if (global.clearQr) {
+        global.clearQr();
+    }
 });
 
 client.on('message', async (msg) => {
