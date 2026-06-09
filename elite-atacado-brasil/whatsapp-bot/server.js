@@ -100,6 +100,11 @@ app.get('/status', (req, res) => {
     });
 });
 
+// Endpoint de Health Check para Render/Plataformas de Nuvem
+app.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.listen(PORT, () => console.log(`Health server listening on port ${PORT}`));
 
 // Inicia o bot de WhatsApp (index.js tem o código principal)
