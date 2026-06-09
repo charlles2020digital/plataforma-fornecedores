@@ -27,19 +27,40 @@ client.on('qr', (qr) => {
     console.log('==================================================');
     qrcode.generate(qr, { small: true });
     
-    // Compartilha o QR Code com o servidor Express (/qr)
-    if (global.setLatestQr) {
-        global.setLatestQr(qr);
-    }
+    global.botState = 'qr_pendente';
+    global.latestQr = qr;
+});
+
+client.on('authenticated', () => {
+    console.log('🔒 Conectado com sucesso! Carregando dados da sessão...');
+    global.botState = 'autenticado';
+});
+
+client.on('auth_failure', (msg) => {
+    console.error('❌ Falha na autenticação do WhatsApp:', msg);
+    global.botState = 'falha';
+    global.latestQr = null;
 });
 
 client.on('ready', () => {
+    const info = client.info;
+    const phone = info.wid.user;
+    const name = info.pushname || 'Sem nome';
+    global.connectedNumber = phone;
+    global.connectedName = name;
+    global.botState = 'conectado';
+    global.latestQr = null;
     console.log('✅ Bot da ELITE Atacado Brasil está ONLINE e pronto para vender!');
+    console.log(`📞 Número conectado: +${phone} (${name})`);
+});
+
+client.on('disconnected', (reason) => {
+    console.log('⚠️ Bot foi desconectado:', reason);
+    global.botState = 'desconectado';
+    global.latestQr = null;
     
-    // Limpa o QR Code no servidor Express quando logado
-    if (global.clearQr) {
-        global.clearQr();
-    }
+    console.log('🔄 Tentando reinicializar o cliente WhatsApp...');
+    client.initialize();
 });
 
 client.on('message', async (msg) => {
