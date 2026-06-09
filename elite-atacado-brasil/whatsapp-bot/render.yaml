@@ -3,7 +3,7 @@ services:
     name: whatsapp-bot
     env: docker
     plan: free
-    dockerfilePath: ./Dockerfile
+    dockerfilePath: elite-atacado-brasil/whatsapp-bot/Dockerfile
     dockerContext: elite-atacado-brasil/whatsapp-bot
     envVars:
       - key: GEMINI_API_KEY
